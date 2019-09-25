@@ -1,7 +1,7 @@
 # Simple-Cache-Simulator
 Simple Hardware Cache Simulator written in C
 
-Two files are needed to run the simulation: a program trace file and a cache configuration file.
+Two files are needed to run the simulation: a program trace file and a cache configuration file. A sample configuration and trace file are provided.
 
 To produce a program trace file with valgrind, use the command<br>
 `valgrind --log-fd=1 --log-file=./tracefile.txt --tool=lackey --trace-mem=yes name_of_executable_to_trace`
