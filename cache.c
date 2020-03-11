@@ -31,35 +31,35 @@ int main(int argc, char* argv[]){
 	if(argc != 3){	//3 arguments must be provided
 		printf("./%s [cache_config_file] [trace_file_name]\n", argv[0]);
 	}
-	else{			//If 3 arguments are provided
-		FILE *fptr = fopen(argv[1], "r");	//Open the config file listed in the second argument
+	else{		//If 3 arguments are provided
+		FILE *fptr = fopen(argv[1], "r");			//Open the config file listed in the second argument
 
 		if(fptr == NULL){					//If the file was not found
-			printf("Error: file '%s' not found\n", argv[1]);	//Print an error
-			exit(1);											//Exit
+			printf("Error: file '%s' not found\n", argv[1]);//Print an error
+			exit(1);					//Exit
 		}
-		else{								//Else, the file was found
-			int config[8];						//Array to store the 7 configuration values
-			read_config_file(fptr, config, argv);	//Read the config file and fill out the config information
+		else{							//Else, the file was found
+			int config[8];					//Array to store the 7 configuration values
+			read_config_file(fptr, config, argv);		//Read the config file and fill out the config information
 			fclose(fptr);
 
 			/*
 			num_sets = config[0];
 			block_size = config[1];
 			associativity = config[2];
-			replacement = config[3];		//0 = random, 1 = LRU
-			write = config[4];				//0 = write-through, 1 = write-back
+			replacement = config[3];	//0 = random, 1 = LRU
+			write = config[4];		//0 = write-through, 1 = write-back
 			cache_cycle = config[5];
 			memory_cycle = config[6];
 			cache_coherence = config[7];	//NOT USED IN THIS IMPLEMENTATION
 			*/
 
-			struct set* cache = malloc(sizeof(struct set) * config[0]);			//Create cache with right number of sets
+			struct set* cache = malloc(sizeof(struct set) * config[0]);		//Create cache with right number of sets
 			int i, j;
-			for(i=0; i<config[0]; i++){											//Initialize each set
+			for(i=0; i<config[0]; i++){						//Initialize each set
 				cache[i].index = i;
 				cache[i].blocks = malloc(sizeof(struct block) * config[2]);	//Allocate each set with blocks
-				for(j=0; j<config[2]; j++){									//Initialize each block
+				for(j=0; j<config[2]; j++){					//Initialize each block
 					cache[i].blocks[j].dirty = 0;
 					cache[i].blocks[j].used = 0;
 					cache[i].blocks[j].valid = 0;
@@ -69,10 +69,10 @@ int main(int argc, char* argv[]){
 
 			//Begin trace file read
 			fptr = fopen(argv[2], "r");
-			if(fptr == NULL){
-				printf("Error: file '%s' not found\n", argv[2]);	//Print an error
+			if(fptr == NULL){					//If no trace file is found
+				printf("Error: file '%s' not found\n", argv[2]);//Print an error
 				free_mem(cache, config[0]);
-				exit(1);											//Exit
+				exit(1);					//Exit
 			}
 			else{
 				read_trace_file(fptr, cache, config, argv[2]);
@@ -94,14 +94,14 @@ void read_config_file(FILE* fptr, int *config, char* argv[]){
 	int i = 0, valid = 0;
 	
 	while((read = getline(&line, &length, fptr)) != -1){	//Read each line in the file
-		valid = check_line(line);							//Check the line that was read
+		valid = check_line(line);			//Check the line that was read
 		if(valid == 0){
 			printf("Error: first eight lines in config file '%s' must be integers\n", argv[1]);
 			exit(1);
 		}
-		if(i < 8){						//If less than 8 lines were read so far
-			config[i] = atoi(line);		//Convert the current line into an integer
-			i++;						//Increment array index
+		if(i < 8){					//If less than 8 lines were read so far
+			config[i] = atoi(line);			//Convert the current line into an integer
+			i++;					//Increment array index
 		}
 	}
 	if(i < 8){	//If 8 lines were not read, file is not valid
@@ -135,8 +135,8 @@ void read_trace_file(FILE* fptr, struct set* cache, int config[8], char* trace){
 	size_t length = 0;
 	ssize_t read;
 
-	char* outfile = trace;		//Copy the name of the trace file
-	strcat(outfile, ".out");	//Append .out to the name
+	char* outfile = trace;			//Copy the name of the trace file
+	strcat(outfile, ".out");		//Append .out to the name
 	FILE* out = fopen(outfile, "w");	//Create the output file
 
 	int summary[4] = {0, 0, 0, 0};
@@ -165,14 +165,14 @@ void read_trace_file(FILE* fptr, struct set* cache, int config[8], char* trace){
 				else if(address[i] >= 'A' && address[i] <= 'F')
 					num = hex[((int) address[i])-65];	//65 is ASCII for 'A'
 				else if (address[i] >= '0' && address[i] <= '9')
-					num = ((int) address[i])- 48;	//48 is ASCII for '0'
-				decimal += num * pow(16, j);	//Decimal represents byte address
+					num = ((int) address[i])- 48;		//48 is ASCII for '0'
+				decimal += num * pow(16, j);			//Decimal represents byte address
 				j++;
 			}
 			
 			block_address = decimal / config[1];		//Block address = byte address / bytes per block (integer division, drop remainder)
-			cache_index = block_address % config[0];		//Cache index = block address % number of indices or sets
-			tag = block_address / config[0];				//Tag = block address / number of indices or sets (integer division, drop remainder)
+			cache_index = block_address % config[0];	//Cache index = block address % number of indices or sets
+			tag = block_address / config[0];		//Tag = block address / number of indices or sets (integer division, drop remainder)
 			
 			int found = -1, full = 1;
 			for(i = 0; i < config[2]; i++){
@@ -184,13 +184,13 @@ void read_trace_file(FILE* fptr, struct set* cache, int config[8], char* trace){
 
 			if(line[1] == 'S')		//If a store operation
 				store_instruction(cache, config, found, used, tag, cache_index, full, out, line, summary);
-			else if(line[1] == 'L')	//If a load operation
+			else if(line[1] == 'L')		//If a load operation
 				load_instruction(cache, config, found, used, tag, cache_index, full, out, line, summary);
 			else if(line[1] == 'M'){	//If a modify operation
 				modify_instruction(cache, config, found, used, tag, cache_index, full, out, line, summary);
 				//fprintf(out, "%s", line);
 			}
-			used++;					//Counter to keep track of when a block was used
+			used++;				//Counter to keep track of when a block was used
 			free(copy);
 			free(address);
 		}
@@ -204,19 +204,20 @@ void read_trace_file(FILE* fptr, struct set* cache, int config[8], char* trace){
 void store_instruction(struct set* cache, int config[8], int found, int used, unsigned long tag, int cache_index, int full, FILE* out, char* line, int summary[4]){
 	char *impact;
 	int cycles = 0, i;
+	//Check storage setting
 	if(config[4] == 0)	//0 = write-through
-		cycles += config[5] + config[6];		//Had to write to cache and main memory
-	else				//1 = write-back
-		cycles += config[5];					//Only had to write to cache
+		cycles += config[5] + config[6];//Had to write to cache and main memory
+	else			//1 = write-back
+		cycles += config[5];		//Only had to write to cache
 		
-	if(found != -1){	//If the block was found in the cache already, hit
-		(summary[1])++;
+	if(found != -1){	//If the block was found in the cache already, cache hit detected
+		(summary[1])++;	//Add a hit
 		cache[cache_index].blocks[found].used = used;
-		cache[cache_index].blocks[found].dirty = 1;		//Data store to cache, block is now dirty
+		cache[cache_index].blocks[found].dirty = 1;	//Data store to cache, block is now dirty
 		impact = "hit";
 	}
-	else{				//Else it was a miss
-		(summary[2])++;
+	else{			//Else it was a miss
+		(summary[2])++;	//Add a miss
 		if(full == 0){	//If index is not full, no eviction
 			for(i = 0; i < config[2]; i++){
 				if(cache[cache_index].blocks[i].valid == 0){	//Add the block to the cache
@@ -226,21 +227,22 @@ void store_instruction(struct set* cache, int config[8], int found, int used, un
 			}
 			impact = "miss";
 		}
-		else{			//If index is full, there is an eviction
-			(summary[3])++;
+		else{		//If index is full, there is an eviction
+			(summary[3])++;	//Add an eviction
+			//Check cache eviction setting
 			if(config[3] == 0)	//0 = random replacement
-				found = rand() % config[2];					//Pick a random block index between 0 and associativity-1
-			else{					//1 = LRU replacement
-				int LRU = cache[cache_index].blocks[0].used;	//Set the LRU value to the first blocks used value
-				found = 0;										//Set the block index to the first one
+				found = rand() % config[2];	//Pick a random block index between 0 and associativity-1
+			else{			//1 = LRU replacement
+				int LRU = cache[cache_index].blocks[0].used;		//Set the LRU value to the first blocks used value
+				found = 0;						//Set the block index to the first one
 				for(i = 1; i < config[2]; i++){				//Compare all the blocks in the set
-					if(cache[cache_index].blocks[i].used < LRU){//If one was used less recently
+					if(cache[cache_index].blocks[i].used < LRU){	//If one was used less recently
 						LRU = cache[cache_index].blocks[i].used;//Set the LRU value to the current block's used value
-						found = i;								//Update the block index to match the current block
+						found = i;				//Update the block index to match the current block
 					}
 				}	
 			}
-			if(config[4] == 1 && cache[cache_index].blocks[found].dirty == 1){ 	//If write-back and evicted block is dirty
+			if(config[4] == 1 && cache[cache_index].blocks[found].dirty == 1){ 	//If using write-back and evicted block is dirty
 				impact = "miss dirty_eviction";
 				cycles += config[6];	//Had to access main memory again for write-back
 			}
@@ -262,16 +264,16 @@ void store_instruction(struct set* cache, int config[8], int found, int used, un
 void load_instruction(struct set* cache, int config[8], int found, int used, unsigned long tag, int cache_index, int full, FILE* out, char* line, int summary[4]){
 	char *impact;
 	int cycles = 0, i;
-	if(found != -1){	//If the block was found in the cache already, hit
-		(summary[1])++;
-		cycles += config[5];					//Only had to access cache
+	if(found != -1){	//If the block was found in the cache already, cache hit detected
+		(summary[1])++;	//Add a hit
+		cycles += config[5];	//Only had to access cache
 		cache[cache_index].blocks[found].used = used;
 		impact = "hit";
 	}
-	else{				//Else it was a miss
-		(summary[2])++;
-		cycles += config[5] + config[6];	//Had to access cache and main memory
-		if(full == 0){	//If index is not full, no eviction
+	else{			//Else it was a miss
+		(summary[2])++;	//Add a miss
+		cycles += config[5] + config[6];//Had to access cache and main memory
+		if(full == 0){		//If index is not full, no eviction
 			for(i = 0; i < config[2]; i++){
 				if(cache[cache_index].blocks[i].valid == 0){	//Add the block to the cache
 					found = i;
@@ -281,20 +283,21 @@ void load_instruction(struct set* cache, int config[8], int found, int used, uns
 			impact = "miss";
 		}
 		else{			//If index is full, there is an eviction
-			(summary[3])++;
+			(summary[3])++;	//Add an eviction
+			//Check for cache eviction policy
 			if(config[3] == 0)	//0 = random replacement
-				found = rand() % config[2];					//Pick a random block index between 0 and associativity-1
+				found = rand() % config[2];	//Pick a random block index between 0 and associativity-1
 			else{					//1 = LRU replacement
-				int LRU = cache[cache_index].blocks[0].used;	//Set the LRU value to the first block's used value
-				found = 0;										//Set the block index to the first one
+				int LRU = cache[cache_index].blocks[0].used;		//Set the LRU value to the first block's used value
+				found = 0;						//Reset the block index tracker
 				for(i = 1; i < config[2]; i++){				//Compare all the blocks in the set
-					if(cache[cache_index].blocks[i].used < LRU){//If the current block was used less recently
+					if(cache[cache_index].blocks[i].used < LRU){	//If the current block was used less recently
 						LRU = cache[cache_index].blocks[i].used;//Set the LRU value to the current block's used value
 						found = i;								//Update the block index to match the current block
 					}
 				}	
 			}
-			if(config[4] == 1 && cache[cache_index].blocks[found].dirty == 1){ 	//If write-back and block is dirty
+			if(config[4] == 1 && cache[cache_index].blocks[found].dirty == 1){ 	//If using write-back and block is dirty
 				impact = "miss dirty_eviction";
 				cycles += config[6];	//Had to access main memory again for write-back
 			}
@@ -320,11 +323,11 @@ void modify_instruction(struct set* cache, int config[8], int found, int used, u
 		if(config[4] == 0)
 			cycles += (2*config[5]) + config[6];	//Scanned cache for block, accessed cache to modify, then stored to memory
 		else
-			cycles += (2*config[5]);				//Scanned cache for block, accessed cache to modify
+			cycles += (2*config[5]);		//Scanned cache for block, accessed cache to modify
 		cache[cache_index].blocks[found].used = used;
 		impact = "hit hit";
 	}
-	else{				//Else, the block to be modified is not in the cache
+	else{			//Else, the block to be modified is not in the cache
 		(summary[2])++;	//Add a miss
 		(summary[1])++;	//Add a hit
 		if(config[4] == 0)
@@ -346,12 +349,12 @@ void modify_instruction(struct set* cache, int config[8], int found, int used, u
 			if(config[3] == 0)	//0 = random replacement
 				found = rand() % config[2];
 			else{				//1 = LRU replacement
-				int LRU = cache[cache_index].blocks[0].used;	//Set the LRU value to the first block's used value
-				found = 0;
+				int LRU = cache[cache_index].blocks[0].used;		//Set the LRU value to the first block's used value
+				found = 0;						//Reset cache index tracker
 				for(i = 1; i < config[2]; i++){				//Compare all the blocks in the set
 					if(cache[cache_index].blocks[i].used < LRU){	//If the current block was used less recently
-						LRU = cache[cache_index].blocks[i].used;	//Set the LRU value to the current block's used value
-						found = i;									//Update the block index to match the current block
+						LRU = cache[cache_index].blocks[i].used;//Set the LRU value to the current block's used value
+						found = i;				//Update the block index to match the current block
 					}
 				}
 			}
